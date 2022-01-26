@@ -1,0 +1,808 @@
+\documentclass[standalone]{beamer}
+
+\begin{document}
+
+\section{匹配}
+
+\subsection{二分圖匹配}
+
+\begin{frame}{\ctitle{Augmenting Path}}
+  \onslide<1-> {
+    \begin{definition}
+      對於一組匹配 $M$，路徑 $P = (x_1, y_1, x_2, y_2, \ldots, x_n, y_n, x_{n + 1})$
+      被稱作\textbf{交錯路徑（alternating path）}若以下條件滿足：
+      \begin{itemize}
+        \item $x_1 \not\in M$
+        \item $(y_i, x_{i + 1}) \in M$, $(x_i, y_i) \not\in M$
+      \end{itemize}
+    \end{definition}
+  }
+  \onslide<2-> {
+    \begin{definition}
+      對於一組匹配 $M$，路徑 $P = (x_1, y_1, x_2, y_2, \ldots, x_n, y_n)$
+      被稱作\textbf{增廣路徑（augmenting path）}若以下條件滿足：
+      \begin{itemize}
+        \item $x_1 \not\in M$, $y_n \not\in M$
+        \item $(y_i, x_{i + 1}) \in M$, $(x_i, y_i) \not\in M$
+      \end{itemize}
+    \end{definition}
+  }
+\end{frame}
+
+\begin{frame}{\ctitle{Key Lemma}}
+  \onslide<1-> {
+    \begin{theorem}[Berge's Lemma]
+      一組匹配 $M$ 為圖 $G$ 中最大匹配若且唯若圖上不存在對於 $M$ 來說的增廣路徑。
+    \end{theorem}
+  }
+  \onslide<2-> {
+    \begin{figure}[H]
+      \centering
+      \begin{tikzpicture}[scale=1]
+        \tikzset{vertex/.style = {shape=circle,draw,minimum size=0.5em}}
+        \tikzset{edge/.style = {-,> = latex'}}
+        \node[vertex] (1) at (0, 0) {};
+        \node[vertex] (2) at (1, 0) {};
+        \node[vertex] (3) at (1, -1) {};
+        \node[vertex] (4) at (0, -1) {};
+        \node[vertex] (5) at (0, -2) {};
+        \node[vertex] (6) at (1, -2) {};
+        \node[vertex] (7) at (0, -3) {};
+        \node[vertex] (8) at (1, -3) {};
+        \node[vertex] (9) at (2, 1) {};
+        \node[vertex] (10) at (2, 0) {};
+        \node[vertex] (11) at (2, -1) {};
+        \node[vertex] (12) at (2, -2) {};
+        \node[vertex] (13) at (2, -3) {};
+        \node[vertex] (14) at (3, 1) {};
+        \node[vertex] (15) at (3, 0) {};
+        \node[vertex] (16) at (3, -1) {};
+        \node[vertex] (17) at (3, -2) {};
+        \node[vertex] (18) at (3, -3) {};
+
+        \draw[edge,ultra thick] (1) to (2);
+        \draw[edge] (2) to (3);
+        \draw[edge,ultra thick] (3) to (4);
+        \draw[edge] (1) to (4);
+        \draw[edge] (4) to (5);
+        \draw[edge] (3) to (6);
+        \draw[edge] (5) to (7);
+        \draw[edge] (6) to (8);
+        \draw[edge,ultra thick] (7) to (8);
+
+        \draw[edge] (9) to (10);
+        \draw[edge,ultra thick] (10) to (11);
+        \draw[edge] (11) to (12);
+        \draw[edge,ultra thick] (12) to (13);
+        \draw[edge] (14) to (15);
+        \draw[edge,ultra thick] (15) to (16);
+        \draw[edge] (16) to (17);
+        \draw[edge,ultra thick] (17) to (18);
+        \draw[edge,ultra thick] (9) to (14);
+        \draw[edge] (13) to (18);
+
+        \draw[edge] (2) to (10);
+        \draw[edge] (3) to (11);
+        \draw[edge] (6) to (12);
+        \draw[edge] (8) to (13);
+        \draw[edge] (1) to (9);
+        \draw[edge] (10) to (18);
+        \draw[edge] (13) to (15);
+
+        \draw[edge] (6) to (13);
+      \end{tikzpicture}
+      \hspace{3em}
+      \begin{tikzpicture}[scale=1]
+        \tikzset{vertex/.style = {shape=circle,draw,minimum size=0.5em}}
+        \tikzset{edge/.style = {-,> = latex'}}
+        \node[vertex] (1) at (0, 0) {};
+        \node[vertex] (2) at (1, 0) {};
+        \node[vertex] (3) at (1, -1) {};
+        \node[vertex] (4) at (0, -1) {};
+        \node[vertex] (5) at (0, -2) {};
+        \node[vertex] (6) at (1, -2) {};
+        \node[vertex] (7) at (0, -3) {};
+        \node[vertex] (8) at (1, -3) {};
+        \node[vertex] (9) at (2, 1) {};
+        \node[vertex] (10) at (2, 0) {};
+        \node[vertex] (11) at (2, -1) {};
+        \node[vertex] (12) at (2, -2) {};
+        \node[vertex] (13) at (2, -3) {};
+        \node[vertex] (14) at (3, 1) {};
+        \node[vertex] (15) at (3, 0) {};
+        \node[vertex] (16) at (3, -1) {};
+        \node[vertex] (17) at (3, -2) {};
+        \node[vertex] (18) at (3, -3) {};
+
+        \draw[edge] (1) to (2);
+        \draw[edge,ultra thick] (2) to (3);
+        \draw[edge] (3) to (4);
+        \draw[edge,ultra thick] (1) to (4);
+        \draw[edge] (4) to (5);
+        \draw[edge] (3) to (6);
+        \draw[edge] (5) to (7);
+        \draw[edge] (6) to (8);
+        \draw[edge,ultra thick] (7) to (8);
+
+        \draw[edge,ultra thick] (9) to (10);
+        \draw[edge] (10) to (11);
+        \draw[edge,ultra thick] (11) to (12);
+        \draw[edge] (12) to (13);
+        \draw[edge] (14) to (15);
+        \draw[edge] (15) to (16);
+        \draw[edge,ultra thick] (16) to (17);
+        \draw[edge] (17) to (18);
+        \draw[edge] (9) to (14);
+        \draw[edge] (13) to (18);
+
+        \draw[edge] (2) to (10);
+        \draw[edge] (3) to (11);
+        \draw[edge] (6) to (12);
+        \draw[edge] (8) to (13);
+        \draw[edge] (1) to (9);
+        \draw[edge] (10) to (18);
+        \draw[edge] (13) to (15);
+
+        \draw[edge,ultra thick] (6) to (13);
+      \end{tikzpicture}
+    \end{figure}
+  }
+\end{frame}
+
+\begin{frame}[fragile]{\ctitle{Algorithm}}
+  \begin{minted}[linenos=false]{cpp}
+    bool Dfs(int x) {
+      for (int y : g[x]) {
+        if (visited[y]) continue;
+        visited[y] = true;
+        if (match[y] == -1 || Dfs(match[y])) {
+          // augmenting path found
+          match[y] = x;
+          return true;
+        }
+      }
+      return false;
+    }
+
+    for (int x = 0; x < N; ++x) {
+      std::fill(visited.begin(), visited.end(), false);
+      Dfs(x);
+    }
+  \end{minted}
+\end{frame}
+
+\begin{frame}{\ctitle{Hopcroft-Karp Algorithm}}
+  \begin{corollary}
+    對一組匹配 $M$，若最短增廣路徑長度為 $k$，則
+    \[ |M^{*}| - |M| \leq O(\frac{1}{k}) \cdot |M^{*}| \]
+  \end{corollary}
+
+  \onslide<2-> {
+    \begin{algorithm}[H]
+      $M \gets \emptyset$ \\
+      \While{還有增廣路徑} {
+        \onslide<3-> {
+          用 BFS 找出最短增廣路距離 $d$ \\
+          用 DFS 找出極大的最短增廣路集合 $\mathcal{P}$ \\
+          $M \gets M \triangle \mathcal{P}$
+        }
+      }
+    \end{algorithm}
+  }
+\end{frame}
+
+\subsection{一般圖匹配}
+
+\begin{frame}{\ctitle{Blossom}}
+  \onslide<1-> {
+    \begin{figure}[H]
+      \centering
+      \begin{tikzpicture}[scale=1.2]
+        \tikzset{vertex/.style = {shape=circle,draw,minimum size=1.5em}}
+        \tikzset{edge/.style = {-,> = latex'}}
+        \node[vertex] (a) at (0, 0) {};
+        \node[vertex] (b) at (1, 0) {};
+        \node[vertex] (c) at (2, 0) {};
+        \node[vertex] (d) at (3, 0) {};
+        \node[vertex] (e) at (4, 0) {};
+        \node[vertex] (f) at (4.5, 1) {};
+        \node[vertex] (g) at (5.5, 0.6) {};
+        \node[vertex] (h) at (5.5, -0.6) {};
+        \node[vertex] (i) at (4.5, -1) {};
+        \draw[edge] (a) to (b);
+        \draw[edge] (b) to (c);
+        \draw[edge] (c) to (d);
+        \draw[edge] (d) to (e);
+        \draw[edge] (e) to (f);
+        \draw[edge] (f) to (g);
+        \draw[edge] (g) to (h);
+        \draw[edge] (h) to (i);
+        \draw[edge] (i) to (e);
+      \end{tikzpicture}
+    \end{figure}
+  }
+
+  \onslide<2-> {
+    \begin{lemma}
+      對於匹配 $M$ 與花 $B$，$G$ 上有 $M$ 的增廣路徑若且唯若 $G \setminus B$ 上有 $M \setminus B$ 的增廣路徑。
+    \end{lemma}
+
+    \begin{lemma}
+      對於匹配 $M$ 與花 $B$，$M$ 是 $G$ 的最大匹配若且唯若 $M \setminus B$ 是 $G \setminus B$ 的最大匹配。
+    \end{lemma}
+  }
+\end{frame}
+
+\begin{frame}{\ctitle{Tutte's Matrix}}
+  % FIXME: This slightly overflows the banner.
+  \onslide<1-> {
+    \begin{theorem}
+      對於\emph{二分圖} $G = ((X, Y), E)$，定義矩陣 $\mathbf{A}(G)$ 為
+
+      \[
+        \mathbf{A}(G)_{ij} =
+          \begin{cases}
+            x_{i,j}, & (i, j) \in E \\
+            0, & (i, j) \not\in E \\
+          \end{cases}
+      \]
+
+      則 $G$ 有完美匹配若且唯若 $\operatorname{det}(\mathbf{A}(G)) \neq 0$。
+    \end{theorem}
+  }
+  \onslide<2-> {
+    \begin{theorem}
+      對於\emph{一般圖} $G = (V, E)$，定義圖特矩陣 $\mathbf{T}(G)$ 為
+
+      \[
+        \mathbf{T}(G)_{ij} =
+          \begin{cases}
+            x_{i,j}, & i < j, (i, j) \in E \\
+            -x_{j,i}, & i > j, (i, j) \in E \\
+            0, & (i, j) \not\in E \\
+          \end{cases}
+      \]
+
+      則 $G$ 有完美匹配若且唯若 $\operatorname{det}(\mathbf{T}(G)) \neq 0$。
+    \end{theorem}
+  }
+\end{frame}
+
+\subsection{二分圖最大權完美匹配}
+
+\begin{frame}{\ctitle{Label}}
+  \onslide<1-> {
+    \begin{definition}
+      對於帶權二分圖 $G = (X, Y, w)$，一組頂標 $\ell: X \cup Y \to \mathbb{R}$ 是合法的若對於所有 $x \in X, y \in Y$
+
+      \[ \ell(x) + \ell(y) \geq w(x, y) \]
+    \end{definition}
+  }
+  \onslide<2-> {
+    \alt<3> {
+      \begin{definition}
+        對於帶權二分圖 $G = (X, Y, w)$ 以及一組合法頂標 $\ell$，定義 $G_\ell$ 為 $G[E_\ell]$，其中
+
+        \[ E_\ell = \{(x, y) \mid \ell(x) + \ell(y) = w(x, y) \} \]
+      \end{definition}
+    } {
+      \[
+        \min_{\text{valid label } \ell}\left\{\sum_{x \in X}\ell(x) + \sum_{y \in Y}\ell(y) \right\} \geq \max_{\text{perfect matching } M}w(M)
+      \]
+    }
+  }
+\end{frame}
+
+\begin{frame}{\ctitle{Kuhn–Munkres Algorithm}}
+  \begin{algorithm}[H]
+    \KwData{帶權二分圖 $G = (X, Y, w)$}
+    \KwResult{最大權完美匹配 $M$}
+
+    $\ell(x) \gets \max_{y \in Y}w(x, y)$, $\ell(y) \gets 0$ \\
+    $M \gets \emptyset$ \\
+
+    \onslide<2-> {
+      \For{$x \in X$} {
+        \While{true} {
+          \If{$G_\ell$ 中存在從 $x$ 開始的增廣路 $P$} {
+            $M \gets M \triangle P$ \\
+            \Break
+          }
+          \onslide<3-> {
+            $Z \gets$ $G_\ell$ 中從 $x$ 開始走交錯路徑可以抵達的節點 \\
+            $\Delta \gets \min\{\ell(i) + \ell(j) - w(i, j) \mid i \in X \cap Z, j \in Y \setminus Z\}$ \\
+          }
+          \onslide<4-> {
+            $\ell(i) \gets \ell(i) - \Delta$, for $i \in X \cap Z$ \\
+            $\ell(j) \gets \ell(j) + \Delta$, for $j \in Y \cap Z$ \\
+          }
+        }
+      }
+    }
+  \end{algorithm}
+\end{frame}
+
+\subsection{定理與應用}
+
+\begin{frame}{\ctitle{Example}}
+  \onslide<1-> {
+    \begin{problem}[砲打皮皮]
+      有一個 $N \times N$ 的棋盤，其中有 $K$ 格上有障礙物。一次操作可以選擇一行或一列並消滅該行
+      或該列上所有的障礙物。請問最小操作次數為何？
+
+      \begin{itemize}
+        \item $1 \leq N \leq 1000$
+        \item $1 \leq K \leq 20000$
+      \end{itemize}
+    \end{problem}
+  }
+  \onslide<2-> {
+    \begin{theorem}[K\"onig's theorem]
+      對於連通二分圖 $G$，$G$ 的最大匹配的邊數恆等於 $G$ 的最小點覆蓋的點數。
+    \end{theorem}
+  }
+\end{frame}
+
+\begin{frame}{\ctitle{Example}}
+  \onslide<1-> {
+    \begin{problem}[挑戰 NPC]
+      有 $n$ 顆球、$m$ 個箱子，每個箱子最多只能放三顆球。有 $e$ 組關係，第 $i$ 組告訴你編號
+      $u_i$ 的球可以放進編號 $v_i$ 的箱子裡。請你將每個球都放到一個箱子中，使得裝有不超過一顆球的
+      箱子數越大越好。此外，保證題目至少有一組解。
+
+      \begin{itemize}
+        \item $1 \leq m \leq 100$
+        \item $1 \leq n \leq 3m$
+      \end{itemize}
+    \end{problem}
+  }
+  \onslide<2-> {
+    \begin{itemize}
+      \item $n = 4$, $m = 3$
+      \item $e = \{(1, 1), (2, 1), (2, 2), (3, 2), (3, 3), (4, 3)\}$
+    \end{itemize}
+  }
+\end{frame}
+
+\begin{frame}{\ctitle{Example}}
+  \onslide<1-> {
+    \begin{problem}[Roads]
+      有一個 $N$ 點 $M$ 邊的帶權無向圖，其中第 $i$ 條邊的邊權為 $c_i$，保證前 $N - 1$ 條邊形成
+      一個生成樹。你現在想要更改一些邊權，使得第 $i$ 條邊的邊權變為 $d_i$ 且前 $N - 1$ 條邊是圖
+      上的一個最小生成樹，求
+
+      \[ \min_{d}\sum_{i = 1}^{M}|c_i - d_i| \]
+    \end{problem}
+  }
+\end{frame}
+
+\begin{frame}{\ctitle{Hall's Marriage Theorem}}
+  \onslide<1-> {
+    \begin{theorem}[Hall's marriage theorem]
+      對於二分圖 $G = ((X, Y), E)$，$G$ 有完美匹配若且唯若
+
+      \[ |S| \leq |N_G(S)| \]
+
+      對於所有 $S \subseteq X$ 都成立。其中 $N_G(S)$ 為所有 $Y$ 中至少與 $S$ 中一個點相鄰的點。
+    \end{theorem}
+  }
+  \onslide<2-> {
+    \begin{theorem}[Tutte's theorem]
+      對於一般圖 $G = (V, E)$，$G$ 有完美匹配若且唯若
+
+      \[ o(V - U) \leq |U| \]
+
+      對於所有 $U \subseteq V$ 都成立。其中 $o(V - U)$ 為 $G[V - U]$ 中有奇數個點的連通塊的數量。
+    \end{theorem}
+  }
+\end{frame}
+
+\begin{frame}{\ctitle{Hall's Marriage Theorem}}
+  \begin{problem}[Allowed Letters]
+    你有一個由 \texttt{a} 到 \texttt{f} 組成的字串 $s$ 以及 $M$ 個限制。每個限制可以表示成
+    $(p_i, t_i)$，其中 $p_i$ 為 $1$ 到 $|s|$ 的位置，而 $t_i$ 是一個 \texttt{a} 到
+    \texttt{f} 所組成的字串，代表位置 $p_i$ 只能放 $t_i$ 內的字元。請將 $s$ 成排列成字典序最
+    小又不違反限制的字串。
+
+    \begin{itemize}
+      \item $1 \leq |s| \leq 10^5$
+      \item $0 \leq m \leq |s|$
+    \end{itemize}
+  \end{problem}
+\end{frame}
+
+\subsection{擬陣}
+
+\begin{frame}{\ctitle{Definition}}
+  \begin{definition}
+    令 $E$ 為一個有限集合，我們稱一個二元組 $M = (E, \mathcal{I})$ 為一個擬陣（matroid），
+    其中 $\mathcal{I} \subseteq 2^E$ 為 $E$ 的子集所形成的\textbf{非空}集合，若：
+
+    \begin{itemize}
+      \item 若 $S \in \mathcal{I}$ 以及 $S^\prime \subsetneq S$，則
+        $S^\prime \in \mathcal{I}$
+      \item 對於 $S_1, S_2 \in \mathcal{I}$ 滿足 $|S_1| < |S_2|$，存在
+        $e \in S_2 \setminus S_1$ 使得 $S_1 \cup \{e\} \in \mathcal{I}$
+    \end{itemize}
+
+    \onslide<2-> {
+      除此之外，我們有以下的定義：
+
+      \begin{itemize}
+        \item 位於 $\mathcal{I}$ 中的集合我們稱之為獨立集（independent set），反之不在
+          $\mathcal{I}$ 中的我們稱為相依集（dependent set）
+        \item 極大的獨立集為基底（base）、極小的相依集為迴路（circuit）
+        \item 一個集合 $Y$ 的秩（rank）$r(Y)$ 為該集合中最大的獨立子集，也就是
+          $r(Y) = \max\{|X| \mid X \subseteq Y \text{ 且 } X \in \mathcal{I} \}$
+      \end{itemize}
+    }
+  \end{definition}
+\end{frame}
+
+\begin{frame}{\ctitle{Example}}
+  \begin{itemize}
+    \item 圖擬陣
+      \begin{figure}[H]
+        \centering
+        \begin{tikzpicture}[scale=2]
+          \tikzset{vertex/.style = {shape=circle,draw,minimum size=0.5em}}
+          \tikzset{edge/.style = {-,> = latex'}}
+
+          \node[vertex] (1) at (0, 0) {};
+          \node[vertex] (2) at (1, 0) {};
+          \node[vertex] (3) at (1, -1) {};
+          \node[vertex] (4) at (0, -1) {};
+
+          \draw[edge] (1) to (2);
+          \draw[edge, bend left] (2) to (3);
+          \draw[edge, bend right] (2) to (3);
+          \draw[edge] (3) to (4);
+          \draw[edge] (1) to (4);
+          \draw[edge] (2) to (4);
+        \end{tikzpicture}
+      \end{figure}
+    \item 塗色擬陣：$E = E_1 \cup E_2 \cup \cdots \cup E_k$
+      \[ \mathcal{I} = \{S \mid |S \cap E_i| \leq k_i\, \forall i \in [k]\} \]
+    \item 均勻擬陣
+      \[ \mathcal{I} = \{S \mid S \subseteq E, |S| \leq k\} \]
+    \item 截斷擬陣
+      \[ \mathcal{I}_k = \{S \mid S \in \mathcal{I}, |S| \leq k\} \]
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{\ctitle{Basis Exchange}}
+  \onslide<1-> {
+    \begin{lemma}[Weak Basis Exchange]
+      令 $B_1$ 與 $B_2$ 是 $M$ 中的基底且 $B_1 \neq B_2$，則對於所有 $x \in B_1 \setminus B_2$，存在 $y \in B_2 \setminus B_1$ 使得 $(B_1 \setminus \{x\}) \cup \{y\}$ 是基底。
+    \end{lemma}
+  }
+  \onslide<2-> {
+    \begin{lemma}[Strong Basis Exchange]
+      令 $B_1$ 與 $B_2$ 是 $M$ 中的基底且 $B_1 \neq B_2$，則對於所有 $x \in B_1 \setminus B_2$，存在 $y \in B_2 \setminus B_1$ 使得 $(B_1 \setminus \{x\}) \cup \{y\}$ 與
+      $(B_2 \setminus \{y\}) \cup \{x\}$ 都是基底。
+    \end{lemma}
+  }
+\end{frame}
+
+\begin{frame}{\ctitle{最大權獨立集}}
+  \begin{algorithm}[H]
+    \KwData{擬陣 $M = (E, \mathcal{I})$、權重 $w: E \to \mathbb{R}_{\geq 0}$}
+    \KwResult{最大權獨立集 $S \in \mathcal{I}$}
+
+    \onslide<2-> {
+      將 $E$ 照 $w$ 排序得到 $w(e_1) \geq w(e_2) \geq \ldots \geq w(e_n)$ \\
+    }
+    \onslide<3-> {
+      $S \gets \emptyset$ \\
+      \For{$i \gets 1$ \KwTo $n$} {
+        \If{$S \cup \{e_i\} \in \mathcal{I}$} {
+          $S \gets S \cup \{e_i\}$
+        }
+      }
+    }
+    \onslide<4-> {
+      \Return $S$
+    }
+  \end{algorithm}
+\end{frame}
+
+\begin{frame}{\ctitle{最大權獨立集}}
+  \begin{problem}
+    有 $n$ 個數字 $a_1, a_2, \ldots, a_n$，以及 $w_1, w_2, \ldots, w_n$。請找出 $a$
+    的一個子集，使得這個子集不管怎麼 XOR 都湊不出 $0$，且使得對應的 $w_i$ 總和最大。
+
+    \begin{itemize}
+      \item $1 \leq n \leq 10^5$
+      \item $0 \leq a_i < 2^{30}$
+    \end{itemize}
+  \end{problem}
+\end{frame}
+
+\subsection{擬陣交}
+
+\begin{frame}{\ctitle{Motivation}}
+  \onslide<1-> {
+    \begin{problem}[Faulty System]
+      給定兩張 $n$ 點 $m$ 邊的無向圖，第 $i$ 條邊在第 $j$ 張圖連接點 $a_{ij}$ 與點 $b_{ij}$
+    。請找出 $\{1, 2, \ldots, m\}$ 中最小的子集 $T$，使得加入編號在 $T$ 中的邊之後，兩張圖
+      都變得連通。
+
+      \begin{itemize}
+        \item $1 \leq n, m \leq 300$
+      \end{itemize}
+    \end{problem}
+  }
+  \onslide<2-> {
+    \begin{definition}[Matroid Intersection]
+      對於擬陣 $M_1 = (E, \mathcal{I}_1)$ 以及 $M_2 = (E, \mathcal{I}_2)$，請找到
+
+      \[ \argmax_{S \in \mathcal{I}_1 \cap \mathcal{I}_2}|S| \]
+    \end{definition}
+  }
+\end{frame}
+
+\begin{frame}{\ctitle{Greedy?}}
+  \onslide<1-> {
+    \begin{algorithm}[H]
+      \KwData{擬陣 $M_1 = (E, \mathcal{I}_1), M_2 = (E, \mathcal{I}_2)$}
+      \KwResult{最大擬陣交 $S \in \mathcal{I}_1 \cap \mathcal{I}_2$}
+
+      $S \gets \emptyset$ \\
+
+      \For{$i = 1$ \KwTo $n$} {
+        \If{$S \cup \{e_i\} \in \mathcal{I}_1 \cap \mathcal{I}_2$} {
+          $S \gets S \cup \{e_i\}$ \\
+        }
+      }
+
+      \Return $S$
+    \end{algorithm}
+  }
+  \onslide<2-> {
+    \begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[scale=1.5]
+      \tikzset{vertex/.style = {shape=circle,draw,minimum size=0.5em}}
+      \tikzset{edge/.style = {-,> = latex'}}
+      \node[vertex] (1) at (0, 0) {};
+      \node[vertex] (2) at (1, 0) {};
+      \node[vertex] (3) at (2, 0) {};
+      \node[vertex] (4) at (0, -1) {};
+      \node[vertex] (5) at (1, -1) {};
+      \node[vertex] (6) at (2, -1) {};
+
+      \draw[edge] (1) to node[midway,above] {b} (2);
+      \draw[edge] (2) to node[midway,above] {e} (3);
+      \draw[edge] (1) to node[midway,left] {d} (4);
+      \draw[edge] (4) to node[midway,below] {c} (5);
+      \draw[edge] (2) to node[midway,left] {a} (5);
+      \draw[edge] (5) to node[midway,below] {g} (6);
+      \draw[edge] (3) to node[midway,right] {f} (6);
+    \end{tikzpicture}
+    \hspace{1em}
+    \begin{tikzpicture}[scale=1.5]
+      \tikzset{vertex/.style = {shape=circle,draw,minimum size=0.5em}}
+      \tikzset{edge/.style = {-,> = latex'}}
+      \node[vertex] (1) at (0, 0) {};
+      \node[vertex] (2) at (-1.2, -1) {};
+      \node[vertex] (3) at (-0.4, -1) {};
+      \node[vertex] (4) at (0.4, -1) {};
+      \node[vertex] (5) at (1.2, -1) {};
+
+      \draw[edge] (1) to node[midway,left] {d} (2);
+      \draw[edge] (1) to node[midway,left] {a} (3);
+      \draw[edge] (1) to node[midway,right] {b} (4);
+      \draw[edge] (1) to node[midway,right] {c} (5);
+      \draw[edge] (3) to node[midway,above] {e} (4);
+      \draw[edge] (4) to node[midway,above] {f} (5);
+      \draw[edge,bend right] (3) to node[midway,below] {g} (5);
+    \end{tikzpicture}
+  \end{figure}
+  }
+\end{frame}
+
+\begin{frame}{\ctitle{Bipartite Matching}}
+  \begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[scale=0.8]
+      \tikzset{vertex/.style = {shape=circle,draw,minimum size=0.5em}}
+      \tikzset{edge/.style = {-,> = latex'}}
+      \node[vertex] (x1) at (0, 0) {};
+      \node[vertex] (x2) at (0, -1) {};
+      \node[vertex] (x3) at (0, -2) {};
+      \node[vertex] (x4) at (0, -3) {};
+      \node[vertex] (x5) at (0, -4) {};
+      \node[vertex] (x6) at (0, -5) {};
+      \node[vertex] (y1) at (3, 0) {};
+      \node[vertex] (y2) at (3, -1) {};
+      \node[vertex] (y3) at (3, -2) {};
+      \node[vertex] (y4) at (3, -3) {};
+      \node[vertex] (y5) at (3, -4) {};
+      \draw[edge] (x1) to (y2) {};
+      \draw[edge] (x2) to (y2) {};
+      \draw[edge] (x2) to (y3) {};
+      \draw[edge] (x3) to (y3) {};
+      \draw[edge] (x3) to (y4) {};
+      \draw[edge] (x4) to (y4) {};
+      \draw[edge] (x5) to (y1) {};
+      \draw[edge] (x6) to (y5) {};
+      \draw[edge] (x6) to (y5) {};
+      \draw[edge] (x5) to (y5) {};
+    \end{tikzpicture}
+  \end{figure}
+
+  \onslide<2-> {
+    \[ \mathcal{I}_1 = \{E^\prime \subseteq E \mid |N_X(x) \cap E^\prime| \leq 1, \forall x \in X\} \]
+    \[ \mathcal{I}_2 = \{E^\prime \subseteq E \mid |N_Y(y) \cap E^\prime| \leq 1, \forall y \in Y\} \]
+  }
+\end{frame}
+
+\begin{frame}{\ctitle{Exchange Graph}}
+  \onslide<1-> {
+    \begin{figure}[H]
+      \centering
+      \begin{tikzpicture}[scale=2]
+        \tikzset{vertex/.style = {shape=circle,draw,minimum size=0.5em}}
+        \tikzset{edge/.style = {-,> = latex'}}
+
+        \node[vertex] (1) at (0, 0) {};
+        \node[vertex] (2) at (1, 0) {};
+        \node[vertex] (3) at (1, -1) {};
+        \node[vertex] (4) at (0, -1) {};
+
+        \draw[edge] (1) to (2);
+        \draw[edge, bend left] (2) to (3);
+        \draw[edge, bend right] (2) to (3);
+        \draw[edge] (3) to (4);
+        \draw[edge] (1) to (4);
+        \draw[edge] (2) to (4);
+      \end{tikzpicture}
+    \end{figure}
+  }
+  \onslide<2-> {
+    \begin{lemma}
+      對於兩個獨立集 $I_1$ 以及 $I_2$，則 $I_1 \setminus I_2 \subseteq I_1$ 以及
+      $I_2 \setminus I_1 \subseteq E \setminus I_1$ 於 $\mathcal{D}_M(I_1)$ 中有完美匹
+      配。
+    \end{lemma}
+  }
+  \onslide<3-> {
+    \begin{lemma}
+      若 $I_1$ 是獨立集且 $\mathcal{D}_M(I_1)$ 中 $I_1 \setminus I_2$ 以及 
+      $I_2 \setminus I_1$ 有\textbf{唯一}的完美匹配的話，則 $I_2$ 也是獨立集。
+    \end{lemma}
+  }
+\end{frame}
+
+\begin{frame}{\ctitle{Exchange Graph}}
+  \begin{columns}
+    \begin{column}{0.5\textwidth}
+      \begin{itemize}
+        \item $(s, x)$: $S \cup \{x\} \in \mathcal{I}_1$
+        \item $(x, t)$: $S \cup \{x\} \in \mathcal{I}_2$
+        \item $(x, y)$: $(S \setminus \{x\}) \cup \{y\} \in \mathcal{I}_1$
+        \item $(y, x)$: $(S \setminus \{x\}) \cup \{y\} \in \mathcal{I}_2$
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \only<2> {
+        \begin{figure}[H]
+          \centering
+          \begin{tikzpicture}[scale=2]
+            \begin{scope}
+              \tikzset{vertex/.style = {shape=circle,draw,minimum size=0.5em}}
+              \tikzset{edge/.style = {-,> = latex'}}
+
+              \node[vertex] (1) at (0, 0) {};
+              \node[vertex] (2) at (0.5, 0) {};
+              \node[vertex] (3) at (1, 0) {};
+              \node[vertex] (4) at (0, -1) {};
+              \node[vertex] (5) at (1, -1) {};
+
+              \draw[edge] (1) to node[midway, above] {c} (2);
+              \draw[edge] (2) to node[midway, above] {d} (3);
+              \draw[edge, bend right] (1) to node[midway, left] {a} (4);
+              \draw[edge, bend left] (1) to node[midway, right] {b} (4);
+              \draw[edge, bend right] (3) to node[midway, left] {e} (5);
+              \draw[edge, bend left] (3) to node[midway, right] {f} (5);
+            \end{scope}
+            \begin{scope}[shift=({0, -2})]
+              \tikzset{vertex/.style = {shape=circle,draw,minimum size=0.5em}}
+              \tikzset{edge/.style = {-,> = latex'}}
+
+              \node[vertex] (1) at (0, 0) {};
+              \node[vertex] (2) at (1, 0) {};
+              \node[vertex] (3) at (1, -1) {};
+              \node[vertex] (4) at (0, -1) {};
+
+              \draw[edge] (1) to node[midway,above] {d} (2);
+              \draw[edge, bend left] (2) to node[midway,right] {e} (3);
+              \draw[edge, bend right] (2) to node[midway,left] {b} (3);
+              \draw[edge] (3) to node[midway,below] {a} (4);
+              \draw[edge] (1) to node[midway,left] {f} (4);
+              \draw[edge] (2) to node[midway,above] {c} (4);
+            \end{scope}
+          \end{tikzpicture}
+        \end{figure}
+      }
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{\ctitle{Algorithm}}
+  \begin{algorithm}[H]
+    \KwData{擬陣 $M_1 = (E, \mathcal{I}_1), M_2 = (E, \mathcal{I}_2)$}
+    \KwResult{最大擬陣交 $S \in \mathcal{I}_1 \cap \mathcal{I}_2$}
+
+    \onslide<2-> {
+      $S \gets \emptyset$ \\
+      \onslide<3-> {
+        \While{true} {
+          $G_S \gets$ $S$ 的交換圖 \\
+          $P \gets$ $G_S$ 中的最短 $s-t$ 路徑 \\
+
+          \onslide<4-> {
+            \If{$P = null$} {
+              \Break
+            }
+          }
+
+          \onslide<5-> {
+            $S \gets S \triangle V(P)$
+          }
+        }
+      }
+      \Return $S$
+    }
+  \end{algorithm}
+\end{frame}
+
+\begin{frame}{\ctitle{Correctness}}
+  \begin{theorem}
+    \[ \max_{S \in \mathcal{I}_1 \cap \mathcal{I}_2}|S| = \min_{U \subseteq E}\{r_1(U) + r_2(E \setminus U)\} \]
+  \end{theorem}
+  \only<2> {
+    \begin{theorem}
+      若 $G_S$ 中沒有 $s$ 到 $t$ 的路徑，則存在 $U$ 使得 $r_1(U) = |S \cap U|$ 且 $r_2(U) = (S \cap (E \setminus U))$。
+    \end{theorem}
+  }
+\end{frame}
+
+\begin{frame}{\ctitle{Weighted Case}}
+  \begin{algorithm}[H]
+    \KwData{擬陣 $M_1 = (E, \mathcal{I}_1), M_2 = (E, \mathcal{I}_2)$、權重 $w: E \to \mathbb{R}_{\geq 0}$}
+    \KwResult{最大權擬陣交 $S \in \mathcal{I}_1 \cap \mathcal{I}_2$}
+
+    \onslide<2-> {
+      $S \gets \emptyset$ \\
+
+      \onslide<3-> {
+        \While{true} {
+          $G_S \gets$ $S$ 的交換圖 \\
+          $l(e) \gets
+            \begin{cases}
+              +w(e), & e \in S \\
+              -w(e), & e \not\in S \\
+            \end{cases}$ \\
+          \onslide<4-> {
+            $P \gets$ $G_S$ 中的\emph{最短} $s-t$ 路徑 \\
+
+            \onslide<5-> {
+              \If{$P = null$} {
+                \Break
+              }
+            }
+
+            \onslide<6-> {
+              $S \gets S \triangle V(P)$
+            }
+          }
+        }
+      }
+
+      \Return $S$
+    }
+  \end{algorithm}
+\end{frame}
+
+\end{document}

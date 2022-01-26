@@ -1,0 +1,435 @@
+\documentclass[standalone]{beamer}
+
+\begin{document}
+
+\section{進階經典算法}
+
+\subsection{支配樹}
+
+\newcommand{\idom}{\operatorname{idom}}
+\newcommand{\sdom}{\operatorname{sdom}}
+\newcommand{\dom}{\operatorname{dom}}
+
+\begin{frame}{\ctitle{Motivation}}
+  \onslide<1-> {
+    \begin{problem}[Useful Roads]
+      給一個 $n$ 點 $m$ 邊的有向圖，求出所有有用的邊。一個邊 $e$ 是有用的若存在一個點 $x$ 使得有
+      一條從 $1$ 到 $x$ 的簡單路徑通過 $e$。
+
+      \begin{itemize}
+        \item $2 \leq n, m \leq 2 \times 10^5$
+      \end{itemize}
+    \end{problem}
+  }
+  \onslide<2-> {
+    \begin{figure}[H]
+      \centering
+      \begin{tikzpicture}[scale=1.5]
+        \tikzset{vertex/.style = {shape=circle,draw,minimum size=0.5em}}
+        \tikzset{edge/.style = {-,> = latex'}}
+        \node[vertex, fill=gray] (1) at (0, 0) {};
+        \node[vertex] (2) at (-1, -1) {};
+        \node[vertex] (3) at (0, -1) {};
+        \node[vertex] (4) at (1, -1) {};
+        \node[vertex] (5) at (-0.5, -2) {};
+        \node[vertex] (6) at (0.5, -2) {};
+
+        \draw[edge,->] (1) to (2);
+        \draw[edge,->] (1) to (3);
+        \draw[edge,->] (1) to (4);
+        \draw[edge,->] (4) to (3);
+        \draw[edge,->] (3) to (2);
+        \draw[edge,->] (3) to (5);
+        \draw[edge,->] (5) to (6);
+        \draw[edge,->] (6) to (3);
+        \draw[edge,->] (6) to (4);
+      \end{tikzpicture}
+    \end{figure}
+  }
+\end{frame}
+
+\begin{frame}{\ctitle{Definition}}
+  \onslide<1-> {
+    \begin{definition}
+      給定一個有向圖 $G$ 以及源點 $r$，定義節點 $d$ \textbf{支配（dominate）}節點 $x$ 若所有
+      $r$ 到 $x$ 的路徑都必須經過 $d$。若 $d \neq x$，則稱 $d$ 嚴格支配 $x$。
+    \end{definition}
+  }
+  \onslide<2-> {
+    \begin{definition}
+      對於節點 $x \neq r$，$x$ 的\textbf{直接支配者（Immediate Dominator）} $\idom(x)$ 滿
+      足
+
+      \begin{itemize}
+        \item $\idom(x)$ 支配 $x$ 且 $\idom(x) \neq x$，且
+        \item 對於所有支配 $x$ 的 $y \neq x$，$y$ 也支配 $\idom(x)$。
+      \end{itemize}
+    \end{definition}
+  }
+\end{frame}
+
+\begin{frame}{\ctitle{Example}}
+  \begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[scale=1.5]
+      \tikzset{vertex/.style = {shape=circle,draw,minimum size=0.5em}}
+      \tikzset{edge/.style = {-,> = latex'}}
+      \node[vertex] (r) at (0, 0) {\tiny 1};
+      \node[vertex] (b) at (-1, -1) {\tiny 8};
+
+      \node[vertex] (a) at (-1.8, -1.5) {\tiny{11}};
+      \node[vertex] (d) at (-1.8, -2) {\tiny{12}};
+      \node[vertex] (l) at (-1.8, -2.5) {\tiny{13}};
+      \node[vertex] (h) at (-1, -3) {\tiny{10}};
+      \node[vertex] (e) at (-0.5, -2) {\tiny 9};
+
+      \node[vertex] (c) at (1, -1) {\tiny 2};
+      \node[vertex] (f) at (0.5, -2) {\tiny 3};
+      \node[vertex] (i) at (1, -3) {\tiny 4};
+      \node[vertex] (g) at (1.8, -1.8) {\tiny 6};
+      \node[vertex] (j) at (1.8, -2.5) {\tiny 7};
+
+      \node[vertex] (k) at (0, -4) {\tiny 5};
+
+      \draw[edge,->] (r) to (b);
+      \draw[edge,->] (r) to (c);
+      \draw[edge,->,bend right=30] (r) to (a);
+      \draw[edge,->] (b) to (a);
+      \draw[edge,->] (b) to (e);
+      \draw[edge,->] (b) to (d);
+      \draw[edge,->,bend left=30] (e) to (h);
+      \draw[edge,->,bend left=30] (h) to (e);
+      \draw[edge,->] (a) to (d);
+      \draw[edge,->] (d) to (l);
+      \draw[edge,->] (l) to (h);
+      \draw[edge,->] (h) to (k);
+
+      \draw[edge,->] (c) to (f);
+      \draw[edge,->] (c) to (g);
+      \draw[edge,->] (f) to (i);
+      \draw[edge,->] (g) to (j);
+      \draw[edge,->] (g) to (i);
+      \draw[edge,->] (j) to (i);
+
+      \draw[edge,->] (k) to (r);
+      \draw[edge,->,bend left=30] (k) to (i);
+      \draw[edge,->,bend left=30] (i) to (k);
+    \end{tikzpicture}
+  \end{figure}
+\end{frame}
+
+\begin{frame}{\ctitle{Semi-Dominator}}
+  \begin{columns}
+    \begin{column}{0.45\textwidth}
+      \onslide<1-> {
+        \begin{definition}
+          對於 $x \neq r$，$x$ 的半支配者 $\sdom(x)$ 為所有 $y$ 使得存在一條
+          $y, v_1, v_2, \ldots, v_k, x$ 且所有 $v_i$ 都大於 $x$ 的路徑中，最小的 $y$。
+        \end{definition}
+      }
+    \end{column}
+    \begin{column}{0.55\textwidth}
+      \onslide<2-> {
+        \begin{figure}[H]
+          \centering
+          \begin{tikzpicture}[scale=1.2]
+            \tikzset{vertex/.style = {shape=circle,draw,minimum size=1em}}
+            \tikzset{edge/.style = {-,> = latex'}}
+
+            \node[vertex] (r) at (0, -1) {\tiny 1};
+
+            \node[vertex] (c) at (-1, -2) {\tiny 2};
+            \node[vertex] (f) at (-1.5, -3) {\tiny 3};
+            \node[vertex] (i) at (-1.5, -4) {\tiny 4};
+            \node[vertex] (k) at (-1.5, -5) {\tiny 5};
+            \node[vertex] (g) at (-0.5, -3) {\tiny 6};
+            \node[vertex] (j) at (-0.5, -4) {\tiny 7};
+
+            \node[vertex] (b) at (1, -2) {\tiny 8};
+            \node[vertex] (e) at (0.5, -3) {\tiny 9};
+            \node[vertex] (h) at (0.5, -4) {\tiny{10}};
+            \node[vertex] (a) at (1.5, -3) {\tiny{11}};
+            \node[vertex] (d) at (1.5, -4) {\tiny{12}};
+            \node[vertex] (l) at (1.5, -5) {\tiny{13}};
+
+            \draw[edge,->] (r) to (b);
+            \draw[edge,->] (r) to (c);
+            \draw[edge,->,bend left=50,dashed] (r) to (a);
+            \draw[edge,->] (b) to (a);
+            \draw[edge,->] (b) to (e);
+            \draw[edge,->,dashed,bend right] (b) to (d);
+            \draw[edge,->,bend left=30] (e) to (h);
+            \draw[edge,->,bend left=30,dashed] (h) to (e);
+            \draw[edge,->] (a) to (d);
+            \draw[edge,->] (d) to (l);
+            \draw[edge,->,dashed] (l) to (h);
+            \draw[edge,->,dashed] (h) to (k);
+
+            \draw[edge,->] (c) to (f);
+            \draw[edge,->] (c) to (g);
+            \draw[edge,->] (f) to (i);
+            \draw[edge,->,dashed] (g) to (j);
+            \draw[edge,->] (g) to (i);
+            \draw[edge,->,dashed] (j) to (i);
+
+            \draw[edge,->,bend left=90,dashed] (k) to (r);
+            \draw[edge,->,bend left=30,dashed] (k) to (i);
+            \draw[edge,->,bend left=30] (i) to (k);
+          \end{tikzpicture}
+        \end{figure}
+      }
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{\ctitle{Lemmas}}
+  \onslide<1-> {
+    \begin{lemma}
+      對於 $T$ 上的兩個節點 $x < y$，任何 $x$ 到 $y$ 的路徑都會包含 $x$ 與 $y$ 在 $T$ 上的一個共同祖先。
+    \end{lemma}
+  }
+  \onslide<2-> {
+    \begin{lemma}
+      對於 $x \neq r$，$\sdom(x)$ 是 $x$ 在 $T$ 上的祖先且 $\sdom(x) \neq x$。
+    \end{lemma}
+  }
+  \onslide<3-> {
+    \begin{lemma}
+      對於 $x \neq r$，$\idom(x)$ 是 $\sdom(x)$ 在 $T$ 上的祖先。
+    \end{lemma}
+  }
+\end{frame}
+
+\begin{frame}{\ctitle{Lemmas}}
+  \onslide<1-> {
+    \begin{lemma}
+      對於 $x \neq r$ 以及 $y \neq r$，若 $x$ 是 $y$ 在 $T$ 上的祖先，則 (1) $x$ 是 $\idom(y)$ 的祖先或 (2) $\idom(y)$ 是 $\idom(x)$ 的祖先。
+    \end{lemma}
+  }
+  \onslide<2-> {
+    \begin{lemma}
+      對於 $x \neq r$，如果對於所有在 $\sdom(x)$ 與 $x$ 於 $T$ 上的路徑中的節點
+      $y \neq \sdom(x)$，都有 $\sdom(y) \geq \sdom(x)$ 的話，則 $\idom(x) = \sdom(x)$。
+    \end{lemma}
+  }
+  \onslide<3-> {
+    \begin{lemma}
+      對於 $x \neq r$，令 $y$ 為 $\sdom(x)$ 與 $x$ 於 $T$ 上路徑中，有最小 $\sdom(y)$ 的節
+      點。則 $\sdom(y) \leq \sdom(x)$ 且 $\idom(x) = \idom(y)$。
+    \end{lemma}
+  }
+\end{frame}
+
+\begin{frame}{\ctitle{Algorithm}}
+  \begin{itemize}
+    \item 支配者：
+      \onslide<2-> {
+        \[
+          \idom(x) =
+            \begin{cases}
+              \sdom(x), & \sdom(x) = \sdom(y) \\
+              \idom(y), & \sdom(x) \neq \sdom(y) \\
+            \end{cases}
+        \]
+      }
+    \item 半支配者：
+      \onslide<3-> {
+        \[
+          \sdom(x) = \min
+            \begin{cases}
+              y, & (y, x) \in E(G), y < x \\
+              \sdom(z), & (y, x) \in E(G), z > x \text{ 是 $y$ 的祖先} \\
+            \end{cases}
+        \]
+      }
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{\ctitle{Algorithm}}
+  \begin{algorithm}[H]
+    \KwData{有向圖 $G = (V, E)$、根 $r \in V$}
+
+    從 $r$ 跑一次 DFS 得到 DFS 序列 $v_1, v_2, \ldots, v_n$ \\
+
+    \onslide<2-> {
+      \For{$i = n$ \KwTo $1$} {
+        $\sdom(v_i) \gets \min\{\sdom(\operatorname{Eval}(u)) \mid (u, v_i) \in E\}$ \\
+
+        \onslide<3-> {
+          \For{$u \in \sdom^{-1}(v_i)$} {
+            $p \gets \operatorname{Eval}(u)$ \\
+            $\dom(u) =
+              \begin{cases}
+                v_i, & \sdom(p) = x \\
+                p, & \sdom(p) \neq x \\
+              \end{cases}$ \\
+          }
+        }
+
+        \onslide<4-> {
+          $\operatorname{Link}(v_i, \operatorname{par}(v_i))$
+        }
+      }
+    }
+
+    \onslide<5-> {
+      \For{$i = 1$ \KwTo $n$} {
+        $\idom(v_i) =
+          \begin{cases}
+            \dom(v_i), & \sdom(v_i) = \dom(v_i) \\
+            \dom(\dom(v_i)), & \sdom(v_i) \neq \dom(v_i) \\
+          \end{cases}$
+      }
+    }
+  \end{algorithm}
+\end{frame}
+
+\subsection{有向最小生成樹}
+
+\begin{frame}{\ctitle{Motivation}}
+  \begin{problem}[GGS-DDU]
+    有 $n$ 道關卡，第 $i$ 道有 $0, 1, \ldots, A_i$、共 $A_i + 1$ 個等級。一開始你在每個關
+    卡都是 $0$ 等。有 $m$ 個道具，對於第 $i$ 個道具，假如你在第 $c_i$ 關達到至少 $L_{1,i}$
+    等的話，那你可以花 $p_i$ 元在第 $d_i$ 關晉升到 $L_{2,i}$ 等。請問要在每一關都達到滿等最少
+    需要花多少錢？
+
+    \begin{itemize}
+      \item $1 \leq n \leq 50$
+      \item $0 \leq m \leq 2000$
+      \item $A_i$ 總和不超過 $500$
+    \end{itemize}
+  \end{problem}
+\end{frame}
+
+\begin{frame}{\ctitle{Idea}}
+  \begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[scale=1.5]
+      \tikzset{vertex/.style = {shape=circle,draw,minimum size=1em}}
+      \tikzset{edge/.style = {-,> = latex'}}
+      \node[vertex, fill=gray] (r) at (0, 0) {};
+      \node[vertex] (v1) at (1, -1) {};
+      \node[vertex] (v2) at (1, -2) {};
+      \node[vertex] (v3) at (0, -2) {};
+      \node[vertex] (x) at (-1, -1) {};
+      \node[vertex] (v4) at (-1, -2) {};
+      \node[vertex] (v5) at (-1, -3) {};
+      \node[vertex] (v6) at (1, -3) {};
+
+      \only<1> {
+        \draw[edge,->] (r) -- (v1) node [midway,right] {$1$};
+        \draw[edge,->] (v1) -- (v2) node [midway,left] {$1$};
+        \draw[edge,->] (v2) -- (v3) node [midway,below] {$1$};
+        \draw[edge,->] (r) -- (x) node [midway,left] {$1$};
+        \draw[edge,->] (x) -- (v4) node [midway,left] {$1$};
+        \draw[edge,->] (v4) -- (v5) node [midway,left] {$1$};
+        \draw[edge,->] (v5) -- (v6) node [midway,above] {$2$};
+        \draw[edge,->] (v2) to node [midway,left] {$1$} (v6) ;
+        \draw[edge,->] (v3) -- (v4) node [midway,below] {$2$};
+        \draw[edge,->,bend right] (v6) to node [midway,right] {$2$} (v1);
+      }
+      \only<2> {
+        \draw[edge,->] (r) -- (v1) node [midway,right] {$2$};
+        \draw[edge,->] (v1) -- (v2) node [midway,left] {$1$};
+        \draw[edge,->] (v2) -- (v3) node [midway,below] {$1$};
+        \draw[edge,->] (r) -- (x) node [midway,left] {$1$};
+        \draw[edge,->] (x) -- (v4) node [midway,left] {$2$};
+        \draw[edge,->] (v4) -- (v5) node [midway,left] {$1$};
+        \draw[edge,->] (v5) -- (v6) node [midway,above] {$1$};
+        \draw[edge,->] (v2) -- (v6) node [midway,left] {$2$};
+        \draw[edge,->] (v3) -- (v4) node [midway,below] {$1$};
+        \draw[edge,->,bend right] (v6) to node [midway,right] {$1$} (v1);
+      }
+    \end{tikzpicture}
+  \end{figure}
+\end{frame}
+
+\begin{frame}{\ctitle{Key Lemma}}
+  \begin{columns}
+    \begin{column}{0.5\textwidth}
+      \onslide<1-> {
+        \begin{lemma}
+          若對於除了 $r$ 以外的點都蒐集它們最小的入邊，而這 $n - 1$ 條邊形成一個環 $C$
+          的話，那存在一個最小有向生成樹包含 $C$ 中的 $|C| - 1$ 條邊。
+        \end{lemma}
+      }
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \onslide<2-> {
+        \begin{figure}[H]
+          \centering
+          \begin{tikzpicture}[scale=1.5]
+            \tikzset{vertex/.style = {shape=circle,draw,minimum size=1em}}
+            \tikzset{edge/.style = {-,> = latex'}}
+            \node[vertex, fill=gray] (r) at (0, 0) {};
+            \node[vertex] (v1) at (1, -1) {};
+            \node[vertex] (v2) at (1, -2) {};
+            \node[vertex] (v3) at (1, -3) {};
+            \node[vertex] (x) at (-1, -1) {};
+            \node[vertex] (v4) at (-1, -2) {};
+            \node[vertex] (v5) at (-1, -3) {};
+            \node[vertex] (v6) at (0, -3.5) {};
+            \draw[edge,->] (r) -- (v1);
+            \draw[edge,->] (v1) -- (v2);
+            \draw[edge,->] (v2) -- (v3);
+            \draw[edge,->] (r) -- (x);
+            \draw[edge,->] (x) -- (v4);
+            \draw[edge,->] (v4) -- (v5);
+            \draw[edge,->] (v5) -- (v6);
+            \draw[edge,->] (v2) -- (v6);
+            \draw[edge,->] (v3) -- (v4);
+            \draw[edge,->] (v6) -- (v1);
+          \end{tikzpicture}
+        \end{figure}
+      }
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{\ctitle{Algorithm}}
+  \begin{algorithm}[H]
+    \KwData{帶權有向圖 $G = (V, E, w)$、根 $r \in V$}
+    \KwResult{$G$ 的有向最小生成樹的權值}
+
+    \onslide<2-> {
+      $in(v) \gets$ $v$ 的最小權入邊（$v \neq r$） \\
+      $G_{in} \gets$ $in(v)$ 所構成的子圖 \\
+    }
+    \onslide<3-> {
+      \If{$G_{in}$ 沒有有向環} {
+        \Return $\sum_{v \neq r}w(in(v))$
+      }
+    }
+    \onslide<4-> {
+      $C \gets$ $G_{in}$ 中的一個有向環 \\
+      $V^\prime \gets (V \setminus V(C)) \cup \{c\}$ \\
+      $E^\prime \gets \{(f(u), f(v)) \mid (u, v) \in E\}$ \\
+    }
+    \onslide<5-> {
+      $w^\prime((f(u), f(v))) \gets
+        \begin{cases}
+          w((u, v)), & v \not\in V(C) \\
+          w((u, v)) - w(in(v)) & v \in V(C) \\
+        \end{cases}$ \\
+    }
+    \onslide<6-> {
+      \Return $\operatorname{DMST}(G^\prime = (V^\prime, E^\prime, w^\prime), r) + \sum_{v \neq r}w(in(v))$
+    }
+  \end{algorithm}
+\end{frame}
+
+\begin{frame}{\ctitle{Subquadratic Implementation}}
+  \begin{tabular}{| c | c | c | c | c |}
+    \hline
+    & \texttt{top()} & \texttt{pop()} & \texttt{push()} & \texttt{merge()} \\\hline
+    Leftist Tree & $O(1)$ & $O(\log{n})$ & $O(\log{n})$ & $O(\log{n})$ \\\hline
+    Fibonacci Heap & $O(1)$ & $O(\log{n})$ & $O(1)$ & $O(1)$ \\\hline
+    Pairing Heap & $O(1)$ & $O(\log{n})$ & $O(1)$ & $O(1)$ \\\hline
+  \end{tabular}
+
+  \begin{itemize}
+    \item Library Checker: \url{https://judge.yosupo.jp/problem/directedmst}
+  \end{itemize}
+\end{frame}
+
+\end{document}
